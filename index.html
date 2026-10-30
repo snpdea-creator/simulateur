@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Simulateur de rémunération des personnels de direction des EPLEFPA (statut d'emploi, faisant-fonction, contractuels) — SNPDEA UNSA">
 <script>window.PRINT_OK=true;</script>
+<script data-goatcounter="https://snpdea.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 <title>Simulateur rémunération PERDIR</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
@@ -764,7 +765,8 @@ function renderGuide(){
   $('out').innerHTML=h;
 }
 function renderOut(){
-  if(!ready()) return renderGuide();
+  if(!ready()){lastSim='';return renderGuide();}
+  {const k=S.statut+'/'+S.emploi+'/'+(S.poste||'');if(k!==lastSim){lastSim=k;gc('simulation/'+S.statut+'/'+S.emploi,'Simulation '+({SE:'détaché',FF:'faisant-fonction',CT:'contractuel'}[S.statut])+' · '+EMPLOIS[S.emploi].s);}}
   const R=compute(),e=S.emploi,p=S.poste?PBYID.get(S.poste):null;
   const st={SE:"Détaché dans le statut d'emploi",FF:'Faisant-fonction · '+CORPS[S.corps],CT:'Contractuel · expérience '+TRANCHES[S.tranche]}[S.statut];
   let h='';
@@ -860,7 +862,7 @@ function condAcces(g){
 function update(){syncForm();renderOut();}
 
 function bind(){
-  $('out').addEventListener('click',ev=>{if(ev.target.closest('[data-print]')){try{window.print();}catch(_){}}});
+  $('out').addEventListener('click',ev=>{if(ev.target.closest('[data-print]')){gc('impression-pdf','Impression PDF');try{window.print();}catch(_){}}});
   let openedForPrint=[];
   window.addEventListener('beforeprint',()=>{openedForPrint=[...document.querySelectorAll('#out details:not([open])')];openedForPrint.forEach(d=>d.open=true);});
   window.addEventListener('afterprint',()=>{openedForPrint.forEach(d=>d.open=false);openedForPrint=[];});
@@ -1017,7 +1019,11 @@ function initTextes(){
 
 /* ---------- Navigation ---------- */
 const VIEWS=['simulateur','baremes','postes','etablissements','textes'];
+/* Mesure d'audience GoatCounter (version en ligne uniquement ; sans effet si le script n'est pas chargé) */
+function gc(path,title){try{const g=window.goatcounter;if(g&&g.count)g.count({path:path,title:title,event:true});}catch(_){}}
+let lastSim='';
 function showView(v,push){
+  if(push) gc('onglet/'+v,'Onglet '+v);
   if(!VIEWS.includes(v)) v='simulateur';
   VIEWS.forEach(x=>{$('v-'+x).hidden=x!==v;});
   document.querySelectorAll('nav.tabs a').forEach(a=>{if(a.dataset.v===v)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
